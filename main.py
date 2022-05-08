@@ -1,27 +1,39 @@
-from typing import Optional
+from typing import List
+from fastapi import FastAPI, WebSocket
 
-from fastapi import FastAPI
-from pydantic import BaseModel
 
+class ConnectionManager:
+    def __init__(self):
+        self.connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.connections.append(websocket)
+
+    async def broadcast(self, data: str):
+        for connection in self.connections:
+            await connection.send_text(data)
+
+
+# Globals
 app = FastAPI()
+manager = ConnectionManager()
 
 
-class Item(BaseModel):
-    name: str
-    price: float
-    is_offer: Optional[bool] = None
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    while True:
+        data = await websocket.receive_text()  # client 메시지 대기
+        await manager.broadcast(data)  # client에 메시지 전달
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+def run():
+    import uvicorn
+    uvicorn.run(app)
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    return {"item_name": item.name, "item_id": item_id}
+# python main.py로 실행할경우 수행되는 구문
+# uvicorn main:app 으로 실행할 경우 아래 구문은 수행되지 않는다.
+if __name__ == "__main__":
+    run()
