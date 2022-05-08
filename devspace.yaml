@@ -3,7 +3,7 @@ version: v1beta11
 # `vars` specifies variables which may be used as ${VAR_NAME} in devspace.yaml
 vars:
 - name: IMAGE
-  value: yonsweng/app
+  value: yonsweng/gausstalk-backend
 
 # `deployments` tells DevSpace how to deploy this project
 deployments:
