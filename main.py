@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 
 
@@ -10,6 +10,9 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.connections.remove(websocket)
 
     async def broadcast(self, data: str):
         for connection in self.connections:
@@ -24,9 +27,12 @@ manager = ConnectionManager()
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
-    while True:
-        data = await websocket.receive_text()  # client 메시지 대기
-        await manager.broadcast(data)  # client에 메시지 전달
+    try:
+        while True:
+            data = await websocket.receive_text()  # client 메시지 대기
+            await manager.broadcast(data)  # client에 메시지 전달
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 
 @app.get("/")

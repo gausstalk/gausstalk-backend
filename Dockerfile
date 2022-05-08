@@ -15,4 +15,4 @@ EXPOSE 8000
 
 # Container start command
 # It is also possible to override this in devspace.yaml via images.*.cmd
-CMD ["uvicorn", "main:app", "--reload"]
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--bind", "0.0.0.0:8000", "--workers", "1"]
