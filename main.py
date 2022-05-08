@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import FastAPI, WebSocket
+from fastapi.responses import JSONResponse
 
 
 class ConnectionManager:
@@ -26,6 +27,11 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         data = await websocket.receive_text()  # client 메시지 대기
         await manager.broadcast(data)  # client에 메시지 전달
+
+
+@app.get("/")
+def say_hi():
+    return JSONResponse({'message': 'Hi'})
 
 
 def run():
