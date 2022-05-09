@@ -3,13 +3,18 @@ kind: Ingress
 metadata:
   name: gausstalk-backend
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
+  tls:
+  - hosts:
+    - talk.gausslabs.ai
+    secretName: aks-ingress-tls
   rules:
-  - http:
+  - host: talk.gausslabs.ai
+    http:
       paths:
       - path: /api(/|$)(.*)
         pathType: Prefix
