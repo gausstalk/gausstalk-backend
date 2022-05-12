@@ -1,48 +1,23 @@
-from typing import List
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from api.v1.api import API
 
-class ConnectionManager:
-    def __init__(self):
-        self.connections: List[WebSocket] = []
+API.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.connections.remove(websocket)
-
-    async def broadcast(self, data: str):
-        for connection in self.connections:
-            await connection.send_text(data)
-
-
-# Globals
-app = FastAPI()
-manager = ConnectionManager()
-
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()  # client 메시지 대기
-            await manager.broadcast(data)  # client에 메시지 전달
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-
-
-@app.get("/")
-def say_hi():
-    return JSONResponse({'message': 'Hi'})
+App = FastAPI()
+App.mount("/app/gausstalk/v1", API)
 
 
 def run():
     import uvicorn
-    uvicorn.run(app)
+    uvicorn.run(App)
 
 
 # python main.py로 실행할경우 수행되는 구문
