@@ -3,10 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from apps import router as apps_router
 
 app = FastAPI()
-app.include_router(apps_router, prefix='/apps')
+app.include_router(apps_router, prefix="/apps")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://talk.gausslabs.ai",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
