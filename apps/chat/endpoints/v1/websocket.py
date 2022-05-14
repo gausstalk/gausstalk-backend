@@ -1,5 +1,4 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
 from typing import List
 
 router = APIRouter()
@@ -32,8 +31,3 @@ async def websocket_endpoint(websocket: WebSocket):
             await manager.broadcast(data)  # client에 메시지 전달
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-
-
-@router.get("/")
-def say_hi():
-    return JSONResponse({'message': 'Hi'})
