@@ -1,18 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from apps import Router as apps_router
 
-from api.v1.api import API
-
-API.add_middleware(
+App = FastAPI()
+App.include_router(apps_router, prefix='/apps')
+App.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-App = FastAPI()
-App.mount("/app/gausstalk/v1", API)
 
 
 def run():

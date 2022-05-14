@@ -2,6 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from typing import List
 
+Router = APIRouter()
 
 class ConnectionManager:
     def __init__(self):
@@ -20,7 +21,6 @@ class ConnectionManager:
 
 
 manager = ConnectionManager()
-Router = APIRouter()
 
 
 @Router.websocket("/ws")
