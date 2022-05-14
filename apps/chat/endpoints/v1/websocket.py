@@ -2,7 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from typing import List
 
-Router = APIRouter()
+router = APIRouter()
 
 class ConnectionManager:
     def __init__(self):
@@ -23,7 +23,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@Router.websocket("/ws")
+@router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
@@ -34,6 +34,6 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 
-@Router.get("/")
+@router.get("/")
 def say_hi():
     return JSONResponse({'message': 'Hi'})

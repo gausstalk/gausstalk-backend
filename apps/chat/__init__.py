@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .endpoints import Router as endpoints_router
+from .endpoints import router as endpoints_router
 
-Router = APIRouter()
-Router.include_router(endpoints_router)
+router = APIRouter()
+router.include_router(endpoints_router)
