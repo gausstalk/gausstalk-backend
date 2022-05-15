@@ -1,38 +1,21 @@
-from typing import List
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from apps import router as apps_router
 
-class ConnectionManager:
-    def __init__(self):
-        self.connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.connections.remove(websocket)
-
-    async def broadcast(self, data: str):
-        for connection in self.connections:
-            await connection.send_text(data)
-
-
-# Globals
 app = FastAPI()
-manager = ConnectionManager()
-
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()  # client 메시지 대기
-            await manager.broadcast(data)  # client에 메시지 전달
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+app.include_router(apps_router, prefix="/apps")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://talk.gausslabs.ai",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
