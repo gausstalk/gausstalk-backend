@@ -1,4 +1,6 @@
 fastapi
 gunicorn
+python-jose[cryptography]
+redis
 requests
 uvicorn[standard]
