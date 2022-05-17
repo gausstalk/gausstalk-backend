@@ -135,3 +135,6 @@ dmypy.json
 
 # Ignore DevSpace cache and log folder
 .devspace/
+
+# Ignore mac file
+.DS_Store
