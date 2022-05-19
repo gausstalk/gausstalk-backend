@@ -7,4 +7,4 @@ class Auth(BaseModel):
 
 
 class AccessToken(BaseModel):
-    gauss_access_token: str
+    gauss_access_token: str | None
