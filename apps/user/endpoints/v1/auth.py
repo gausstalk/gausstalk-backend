@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 
 import requests
-from fastapi import APIRouter, Response, status
+from fastapi import status, APIRouter, Request, Response
 from fastapi.responses import JSONResponse
 from jose import jwt
 
@@ -107,3 +107,10 @@ def auth_post(body: auth.Auth, response: Response):
     )
     response.set_cookie('gauss_refresh_token', gauss_refresh_token, secure=True, httponly=True)
     return {'gauss_access_token': gauss_access_token}
+
+
+@router.delete('/')
+def auth_delete(request: Request):
+    # delete gauss_refresh_token from DB
+    # request.cookies.get('gauss_refresh_token')
+    return JSONResponse(status_code=200)
