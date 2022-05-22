@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta
 
@@ -24,6 +25,25 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+@router.get(
+    '/',
+    response_model=auth.User,
+    responses={401: {'model': Message}},
+)
+def auth_get(gauss_access_token: str | None = None):
+    try:
+        user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
+        print(user_info)
+    # pylint: disable=broad-except
+    except Exception as error:
+        logging.error(error)
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={'message': 'gauss_access_token is not valid.'}
+        )
+    return {'mail': user_info['sub'], 'name': user_info['name']}
 
 
 @router.post(
