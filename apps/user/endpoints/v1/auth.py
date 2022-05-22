@@ -35,10 +35,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 def auth_get(gauss_access_token: str | None = None):
     try:
         user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
-        print(user_info)
     # pylint: disable=broad-except
     except Exception as error:
-        logging.error(error)
+        logging.error('jwt decoding failed. %s', error)
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={'message': 'gauss_access_token is not valid.'}
@@ -49,7 +48,7 @@ def auth_get(gauss_access_token: str | None = None):
 @router.post(
     '/',
     response_model=auth.AccessToken,
-    responses={500: {"model": Message}},
+    responses={500: {'model': Message}},
 )
 def auth_post(body: auth.Auth, response: Response):
     # get ms_access_token
