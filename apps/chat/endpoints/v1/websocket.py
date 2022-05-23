@@ -1,33 +1,41 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import List
+import asyncio
+import logging
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from redis.asyncio import Redis
+
+from services.redis_cache import get_redis, reader
 
 router = APIRouter()
 
-class ConnectionManager:
-    def __init__(self):
-        self.connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.connections.remove(websocket)
-
-    async def broadcast(self, data: str):
-        for connection in self.connections:
-            await connection.send_text(data)
-
-
-manager = ConnectionManager()
-
 
 @router.websocket('/')
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+async def websocket_endpoint(
+    websocket: WebSocket,
+    redis: Redis = Depends(get_redis),
+):
+    await websocket.accept()
+
+    channel = redis.pubsub()
+    await channel.subscribe('companywide')
+
     try:
         while True:
-            data = await websocket.receive_text()  # client 메시지 대기
-            await manager.broadcast(data)  # client에 메시지 전달
+            receive_text_coro = websocket.receive_text()
+            reader_coro = reader(channel)
+
+            dones, pendings = await asyncio.wait(
+                [receive_text_coro, reader_coro],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            for pending in pendings:
+                pending.cancel()
+
+            for done in dones:
+                message = done.result()
+                if done.get_coro() == receive_text_coro:
+                    await redis.publish('companywide', message)
+                elif done.get_coro() == reader_coro:
+                    await websocket.send_text(message)
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        logging.info('Websocket disconnected.')
