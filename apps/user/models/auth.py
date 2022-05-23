@@ -7,4 +7,9 @@ class Auth(BaseModel):
 
 
 class AccessToken(BaseModel):
-    gauss_access_token: str
+    gauss_access_token: str | None
+
+
+class User(BaseModel):
+    mail: str
+    name: str
