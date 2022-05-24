@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from apps import router as apps_router
+from services import redis_cache
 
 app = FastAPI()
 app.include_router(apps_router, prefix="/apps")
@@ -16,6 +17,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event('startup')
+async def startup_event():
+    app.state.redis = redis_cache.REDIS
 
 
 @app.get("/")
