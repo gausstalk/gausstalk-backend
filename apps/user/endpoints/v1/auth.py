@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 
 import requests
-from fastapi import status, APIRouter, Response
+from fastapi import status, APIRouter, Response, Cookie
 from fastapi.responses import JSONResponse
 from jose import jwt
 
@@ -32,17 +32,42 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     response_model=auth.User,
     responses={401: {'model': Message}},
 )
-def auth_get(gauss_access_token: str | None = None):
+def auth_get(
+    gauss_access_token: str | None = None,
+    gauss_refresh_token: str | None = Cookie(default=None),
+):
     try:
         user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
+        return {
+            'mail': user_info['sub'],
+            'name': user_info['name'],
+            'gauss_access_token': gauss_access_token,
+        }
     # pylint: disable=broad-except
     except Exception as error:
-        logging.error('jwt decoding failed. %s', error)
+        logging.warning('Decoding gauss_access_token failed. %s', error)
+
+    try:
+        user_info = jwt.decode(gauss_refresh_token, SECRET_KEY, ALGORITHM)
+        gauss_access_token = create_access_token(
+            data={
+                'sub': user_info['sub'],
+                'name': user_info['name'],
+            },
+            expires_delta=timedelta(days=14),
+        )
+        return {
+            'mail': user_info['sub'],
+            'name': user_info['name'],
+            'gauss_access_token': gauss_access_token,
+        }
+    # pylint: disable=broad-except
+    except Exception as error:
+        logging.warning('Regenerating gauss_access_token failed. %s', error)
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'message': 'gauss_access_token is not valid.'}
+            content={'message': 'gauss_refresh_token is not valid.'},
         )
-    return {'mail': user_info['sub'], 'name': user_info['name']}
 
 
 @router.post(
