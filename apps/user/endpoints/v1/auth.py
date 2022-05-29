@@ -1,5 +1,6 @@
 import logging
 import os
+import urllib.parse
 from datetime import datetime, timedelta
 
 import requests
@@ -83,7 +84,7 @@ def auth_post(body: auth.Auth, response: Response):
             'client_id': '7fc37514-c400-4b28-a6d6-e19a9ae981b6',
             'scope': 'offline_access User.read',
             'code': body.code,
-            'redirect_uri': 'http://localhost:3000/auth',
+            'redirect_uri': urllib.parse.urljoin(os.environ['DOMAIN'], 'auth'),
             'grant_type': 'authorization_code',
             'client_secret': os.environ['CLIENT_SECRET'],
         },
