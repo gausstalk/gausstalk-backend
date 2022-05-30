@@ -13,3 +13,4 @@ class AccessToken(BaseModel):
 class User(BaseModel):
     mail: str
     name: str
+    gauss_access_token: str | None

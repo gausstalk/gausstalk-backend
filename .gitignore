@@ -138,3 +138,6 @@ dmypy.json
 
 # Ignore mac file
 .DS_Store
+
+# Ignore secret.yaml
+secret.yaml

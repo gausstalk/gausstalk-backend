@@ -17,6 +17,42 @@ deployments:
     values:
       containers:
       - image: ${IMAGE} # Use the value of our `${IMAGE}` variable here (see vars above)
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: SECRET_KEY
+        - name: CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: CLIENT_SECRET
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_PORT
+        - name: REDIS_DB
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_DB
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_PASSWORD
+        - name: DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: DOMAIN
       service:
         ports:
         - port: 8000

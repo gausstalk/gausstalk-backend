@@ -1,10 +1,12 @@
 import logging
 import os
+import urllib.parse
 from datetime import datetime, timedelta
 
 import requests
-from fastapi import status, APIRouter, Request, Response
+from fastapi import status, APIRouter, Response, Cookie, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from jose import jwt
 
 from ...models import auth
@@ -14,6 +16,8 @@ SECRET_KEY = os.environ['SECRET_KEY']
 ALGORITHM = 'HS256'
 
 router = APIRouter()
+
+http_bearer = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -27,22 +31,58 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
+def get_user(
+    credentials: HTTPBasicCredentials = Depends(http_bearer),
+    gauss_refresh_token: str | None = Cookie(default=None),
+) -> auth.User | None:
+    '''
+    Check bearer token and cookie.
+    Return User or None.
+    '''
+    gauss_access_token = credentials.credentials
+    try:
+        user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
+        return {
+            'mail': user_info['sub'],
+            'name': user_info['name'],
+            'gauss_access_token': gauss_access_token,
+        }
+    # pylint: disable=broad-except
+    except Exception as error:
+        logging.debug('Decoding gauss_access_token failed. %s', error)
+
+    try:
+        user_info = jwt.decode(gauss_refresh_token, SECRET_KEY, ALGORITHM)
+        gauss_access_token = create_access_token(
+            data={
+                'sub': user_info['sub'],
+                'name': user_info['name'],
+            },
+            expires_delta=timedelta(days=14),
+        )
+        return {
+            'mail': user_info['sub'],
+            'name': user_info['name'],
+            'gauss_access_token': gauss_access_token,
+        }
+    # pylint: disable=broad-except
+    except Exception as error:
+        logging.debug('Regenerating gauss_access_token failed. %s', error)
+        return None
+
+
 @router.get(
     '/',
     response_model=auth.User,
-    responses={401: {'model': Message}},
+    responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
-def auth_get(gauss_access_token: str | None = None):
-    try:
-        user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
-    # pylint: disable=broad-except
-    except Exception as error:
-        logging.error('jwt decoding failed. %s', error)
+def auth_get(user: auth.User | None = Depends(get_user)):
+    if user is None:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'message': 'gauss_access_token is not valid.'}
+            content={'message': 'Not valid user.'},
         )
-    return {'mail': user_info['sub'], 'name': user_info['name']}
+    return user
 
 
 @router.post(
@@ -58,7 +98,7 @@ def auth_post(body: auth.Auth, response: Response):
             'client_id': '7fc37514-c400-4b28-a6d6-e19a9ae981b6',
             'scope': 'offline_access User.read',
             'code': body.code,
-            'redirect_uri': 'http://localhost:3000/auth',
+            'redirect_uri': urllib.parse.urljoin(os.environ['DOMAIN'], 'auth'),
             'grant_type': 'authorization_code',
             'client_secret': os.environ['CLIENT_SECRET'],
         },
@@ -108,8 +148,16 @@ def auth_post(body: auth.Auth, response: Response):
     return {'gauss_access_token': gauss_access_token}
 
 
-@router.delete('/')
-def auth_delete(request: Request):
-    # delete gauss_refresh_token from DB
-    # request.cookies.get('gauss_refresh_token')
-    return JSONResponse(status_code=200)
+@router.delete(
+    '/',
+    response_model=Message,
+    responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
+)
+def auth_delete(response: Response, user: auth.User | None = Depends(get_user)):
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={'message': 'Not valid user.'},
+        )
+    response.delete_cookie('gauss_refresh_token')
+    return {'message': 'Deleted gauss_refresh_token.'}
