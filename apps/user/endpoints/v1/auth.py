@@ -4,8 +4,9 @@ import urllib.parse
 from datetime import datetime, timedelta
 
 import requests
-from fastapi import status, APIRouter, Response, Cookie
+from fastapi import status, APIRouter, Response, Cookie, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from jose import jwt
 
 from ...models import auth
@@ -15,6 +16,8 @@ SECRET_KEY = os.environ['SECRET_KEY']
 ALGORITHM = 'HS256'
 
 router = APIRouter()
+
+http_bearer = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -28,15 +31,15 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-@router.get(
-    '/',
-    response_model=auth.User,
-    responses={401: {'model': Message}},
-)
-def auth_get(
-    gauss_access_token: str | None = None,
+def get_user(
+    credentials: HTTPBasicCredentials = Depends(http_bearer),
     gauss_refresh_token: str | None = Cookie(default=None),
-):
+) -> auth.User | None:
+    '''
+    Check bearer token and cookie.
+    Return User or None.
+    '''
+    gauss_access_token = credentials.credentials
     try:
         user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
         return {
@@ -46,7 +49,7 @@ def auth_get(
         }
     # pylint: disable=broad-except
     except Exception as error:
-        logging.warning('Decoding gauss_access_token failed. %s', error)
+        logging.debug('Decoding gauss_access_token failed. %s', error)
 
     try:
         user_info = jwt.decode(gauss_refresh_token, SECRET_KEY, ALGORITHM)
@@ -64,11 +67,22 @@ def auth_get(
         }
     # pylint: disable=broad-except
     except Exception as error:
-        logging.warning('Regenerating gauss_access_token failed. %s', error)
+        logging.debug('Regenerating gauss_access_token failed. %s', error)
+        return None
+
+
+@router.get(
+    '/',
+    response_model=auth.User,
+    responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
+)
+def auth_get(user: auth.User | None = Depends(get_user)):
+    if user is None:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'message': 'gauss_refresh_token is not valid.'},
+            content={'message': 'Not valid user.'},
         )
+    return user
 
 
 @router.post(
@@ -134,7 +148,16 @@ def auth_post(body: auth.Auth, response: Response):
     return {'gauss_access_token': gauss_access_token}
 
 
-@router.delete('/', response_model=Message)
-def auth_delete(response: Response):
+@router.delete(
+    '/',
+    response_model=Message,
+    responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
+)
+def auth_delete(response: Response, user: auth.User | None = Depends(get_user)):
+    if user is None:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={'message': 'Not valid user.'},
+        )
     response.delete_cookie('gauss_refresh_token')
     return {'message': 'Deleted gauss_refresh_token.'}
