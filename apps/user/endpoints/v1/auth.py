@@ -31,7 +31,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def get_user(
+async def get_user(
     credentials: HTTPBasicCredentials = Depends(http_bearer),
     gauss_refresh_token: str | None = Cookie(default=None),
 ) -> auth.User | None:
@@ -76,7 +76,7 @@ def get_user(
     response_model=auth.User,
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
-def auth_get(user: auth.User | None = Depends(get_user)):
+async def auth_get(user: auth.User | None = Depends(get_user)):
     if user is None:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -153,7 +153,7 @@ def auth_post(body: auth.Auth, response: Response):
     response_model=Message,
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
-def auth_delete(response: Response, user: auth.User | None = Depends(get_user)):
+async def auth_delete(response: Response, user: auth.User | None = Depends(get_user)):
     if user is None:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,

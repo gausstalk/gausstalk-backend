@@ -25,7 +25,7 @@ async def startup_event():
 
 
 @app.get("/")
-def say_hi():
+async def say_hi():
     return JSONResponse({'message': 'Hi'})
 
 
