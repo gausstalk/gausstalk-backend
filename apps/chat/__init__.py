@@ -1,3 +1,7 @@
+'''
+router prefix is /apps/chat
+'''
+
 from fastapi import APIRouter
 from .endpoints import router as endpoints_router
 

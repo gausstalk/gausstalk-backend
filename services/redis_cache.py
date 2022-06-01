@@ -1,3 +1,7 @@
+'''
+module for redis
+'''
+
 import asyncio
 import logging
 import os
@@ -25,10 +29,16 @@ except (redis.RedisError, TypeError) as error:
 
 
 async def get_redis(websocket: WebSocket):
+    '''
+    global variable of redis instance
+    '''
     return websocket.app.state.redis
 
 
 async def reader(channel: redis.client.PubSub):
+    '''
+    read message through redis pub/sub
+    '''
     while True:
         message = await channel.get_message(ignore_subscribe_messages=True)
         if message is not None:

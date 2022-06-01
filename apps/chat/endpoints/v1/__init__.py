@@ -1,3 +1,7 @@
+'''
+router prefix is /apps/apps/v1
+'''
+
 from fastapi import APIRouter
 from .websocket import router as websocket_router
 

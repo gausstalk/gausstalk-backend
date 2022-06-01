@@ -1,3 +1,8 @@
+'''
+path functions for websocket
+router prefix is /apps/apps/v1/ws
+'''
+
 import asyncio
 import logging
 
@@ -14,6 +19,9 @@ async def websocket_endpoint(
     websocket: WebSocket,
     redis: Redis = Depends(get_redis),
 ):
+    '''
+    websocket connection
+    '''
     await websocket.accept()
 
     channel = redis.pubsub()
