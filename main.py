@@ -33,7 +33,7 @@ async def startup_event():
 
 
 @app.get("/")
-def say_hi():
+async def say_hi():
     '''
     health check of the server
     '''
