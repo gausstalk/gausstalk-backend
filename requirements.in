@@ -1,5 +1,8 @@
 fastapi
 gunicorn
+pip-tools
+pre-commit
+pylint
 python-jose[cryptography]
 redis
 requests

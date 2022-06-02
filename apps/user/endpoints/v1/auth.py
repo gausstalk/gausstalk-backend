@@ -1,3 +1,8 @@
+'''
+path functions for authentification and authorization
+router prefix is /apps/user/v1/auth
+'''
+
 import logging
 import os
 import urllib.parse
@@ -21,6 +26,9 @@ http_bearer = HTTPBearer()
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    '''
+    generate JWT
+    '''
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -77,6 +85,9 @@ async def get_user(
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
 async def auth_get(user: auth.User | None = Depends(get_user)):
+    '''
+    return user if token is valid
+    '''
     if user is None:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -91,6 +102,9 @@ async def auth_get(user: auth.User | None = Depends(get_user)):
     responses={500: {'model': Message}},
 )
 def auth_post(body: auth.Auth, response: Response):
+    '''
+    ms login
+    '''
     # get ms_access_token
     ms_response = requests.post(
         'https://login.microsoftonline.com/cfcd9b87-7c5a-4042-9129-abee6253febe/oauth2/v2.0/token',
@@ -154,6 +168,9 @@ def auth_post(body: auth.Auth, response: Response):
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
 async def auth_delete(response: Response, user: auth.User | None = Depends(get_user)):
+    '''
+    logout
+    '''
     if user is None:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,

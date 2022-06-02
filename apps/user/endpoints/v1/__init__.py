@@ -1,3 +1,7 @@
+'''
+router prefix is /apps/user/v1
+'''
+
 from fastapi import APIRouter
 from .auth import router as auth_router
 
