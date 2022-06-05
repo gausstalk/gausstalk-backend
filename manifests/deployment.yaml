@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gausstalk-backend
+  labels:
+    app.kubernetes.io/component: gausstalk-backend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3        # how many pods we can add at a time
+      maxUnavailable: 1  # maxUnavailable define how many pods can be unavailable
+                         # during the rolling update
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: gausstalk-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: gausstalk-backend
+    spec:
+      containers:
+      - name: gausstalk-backend
+        image: gausstalk.azurecr.io/gausstalk-backend
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        env:
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: SECRET_KEY
+        - name: CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: CLIENT_SECRET
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_PORT
+        - name: REDIS_DB
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_DB
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: REDIS_PASSWORD
+        - name: DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: DOMAIN
