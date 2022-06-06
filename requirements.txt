@@ -82,6 +82,8 @@ pydantic==1.9.0
     # via fastapi
 pylint==2.14.0
     # via -r requirements.in
+pymongo==4.1.1
+    # via -r requirements.in
 pyparsing==3.0.9
     # via packaging
 python-dotenv==0.20.0

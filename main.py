@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from apps import router as apps_router
-from services import redis_cache
+from services import redis_cache, mongo_service
 
 app = FastAPI()
 app.include_router(apps_router, prefix="/apps")
@@ -30,6 +30,7 @@ async def startup_event():
     define global variables or other starting statements
     '''
     app.state.redis = redis_cache.REDIS
+    app.state.mongo_db = mongo_service.mongo_db
 
 
 @app.get("/")
