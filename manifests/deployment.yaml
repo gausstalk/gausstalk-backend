@@ -65,3 +65,13 @@ spec:
             secretKeyRef:
               name: environment-variables
               key: DOMAIN
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MONGO_URI
+        - name: MONGO_DB
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MONGO_DB
