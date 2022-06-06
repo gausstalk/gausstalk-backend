@@ -15,21 +15,18 @@ router = APIRouter()
 
 @router.get(
     '/',
-    dependencies=[Depends(auth_user)],
     response_model=Message,
     responses={
-        status.HTTP_401_UNAUTHORIZED: {'model': Message},
         status.HTTP_404_NOT_FOUND: {'model': Message},
     },
 )
 def get_user(
-    mail: str | None = None,
+    user: auth.User = Depends(auth_user),
     database = Depends(get_mongo),  # MongoDB database
 ):
     ''' Check if there's already the user in the DB. '''
-
     # Check if there's already the same user.
-    if database.user.find_one({'mail': mail}):
+    if database.user.find_one({'mail': user['mail']}):
         return {'message': 'User found.'}
 
     return JSONResponse(

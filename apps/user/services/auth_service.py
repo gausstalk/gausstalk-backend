@@ -6,8 +6,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from fastapi import status, Cookie, Depends
-from fastapi.responses import JSONResponse
+from fastapi import status, HTTPException, Cookie, Depends
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from jose import jwt
 
@@ -70,7 +69,6 @@ async def auth_user(
     # pylint: disable=broad-except
     except Exception as error:
         logging.debug('Regenerating gauss_access_token failed. %s', error)
-        return JSONResponse(
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'message': 'Not valid user.'},
-        )
+        ) from error
