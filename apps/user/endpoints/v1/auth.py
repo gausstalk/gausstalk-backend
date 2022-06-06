@@ -3,17 +3,15 @@ path functions for authentification and authorization
 router prefix is /apps/user/v1/auth
 '''
 
-import logging
 import os
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import requests
-from fastapi import status, APIRouter, Response, Cookie, Depends
+from fastapi import status, APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasicCredentials, HTTPBearer
-from jose import jwt
 
+from ...services.auth_service import auth_user, create_access_token
 from ...models import auth
 from ...models.message import Message
 
@@ -22,77 +20,17 @@ ALGORITHM = 'HS256'
 
 router = APIRouter()
 
-http_bearer = HTTPBearer()
-
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    '''
-    generate JWT
-    '''
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({'exp': expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-async def get_user(
-    credentials: HTTPBasicCredentials = Depends(http_bearer),
-    gauss_refresh_token: str | None = Cookie(default=None),
-) -> auth.User | None:
-    '''
-    Check bearer token and cookie.
-    Return User or None.
-    '''
-    gauss_access_token = credentials.credentials
-    try:
-        user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
-        return {
-            'mail': user_info['sub'],
-            'name': user_info['name'],
-            'gauss_access_token': gauss_access_token,
-        }
-    # pylint: disable=broad-except
-    except Exception as error:
-        logging.debug('Decoding gauss_access_token failed. %s', error)
-
-    try:
-        user_info = jwt.decode(gauss_refresh_token, SECRET_KEY, ALGORITHM)
-        gauss_access_token = create_access_token(
-            data={
-                'sub': user_info['sub'],
-                'name': user_info['name'],
-            },
-            expires_delta=timedelta(days=14),
-        )
-        return {
-            'mail': user_info['sub'],
-            'name': user_info['name'],
-            'gauss_access_token': gauss_access_token,
-        }
-    # pylint: disable=broad-except
-    except Exception as error:
-        logging.debug('Regenerating gauss_access_token failed. %s', error)
-        return None
-
 
 @router.get(
     '/',
+    dependencies=[Depends(auth_user)],
     response_model=auth.User,
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
-async def auth_get(user: auth.User | None = Depends(get_user)):
+async def get_auth(user: auth.User | None = Depends(auth_user)):
     '''
     return user if token is valid
     '''
-    if user is None:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'message': 'Not valid user.'},
-        )
     return user
 
 
@@ -101,7 +39,7 @@ async def auth_get(user: auth.User | None = Depends(get_user)):
     response_model=auth.AccessToken,
     responses={500: {'model': Message}},
 )
-def auth_post(body: auth.Auth, response: Response):
+def post_auth(body: auth.Auth, response: Response):
     '''
     ms login
     '''
@@ -164,17 +102,13 @@ def auth_post(body: auth.Auth, response: Response):
 
 @router.delete(
     '/',
+    dependencies=[Depends(auth_user)],
     response_model=Message,
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
-async def auth_delete(response: Response, user: auth.User | None = Depends(get_user)):
+async def delete_auth(response: Response):
     '''
     logout
     '''
-    if user is None:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={'message': 'Not valid user.'},
-        )
     response.delete_cookie('gauss_refresh_token')
     return {'message': 'Deleted gauss_refresh_token.'}

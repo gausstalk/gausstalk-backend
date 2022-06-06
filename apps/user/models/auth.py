@@ -5,6 +5,8 @@ auth models
 # pylint: disable=no-name-in-module
 # pylint: disable=too-few-public-methods
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -29,4 +31,4 @@ class User(BaseModel):
     '''
     mail: str
     name: str
-    gauss_access_token: str | None
+    gauss_access_token: Optional[str | None]

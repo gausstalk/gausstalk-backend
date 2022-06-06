@@ -3,6 +3,7 @@ gunicorn
 pip-tools
 pre-commit
 pylint
+pymongo
 python-jose[cryptography]
 redis
 requests
