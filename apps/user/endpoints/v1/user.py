@@ -1,6 +1,6 @@
-'''
+"""
 Path functions for /apps/user/v1/user
-'''
+"""
 
 from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -21,10 +21,10 @@ router = APIRouter()
     },
 )
 def get_user(
-    user: auth.User = Depends(auth_user),
-    database = Depends(get_mongo),  # MongoDB database
+        user: auth.User = Depends(auth_user),
+        database=Depends(get_mongo),  # MongoDB database
 ):
-    ''' Check if there's already the user in the DB. '''
+    """ Check if there's already the user in the DB. """
     # Check if there's already the same user.
     if database.user.find_one({'mail': user['mail']}):
         return {'message': 'User found.'}
@@ -45,10 +45,10 @@ def get_user(
     },
 )
 def post_user(
-    body: auth.User,
-    database = Depends(get_mongo),  # MongoDB database
+        body: auth.User,
+        database=Depends(get_mongo),  # MongoDB database
 ):
-    ''' Create a user if not existing. '''
+    """ Create a user if not existing. """
 
     # Check if there's already the same user.
     if database.user.find_one({'mail': body.mail}):

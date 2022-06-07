@@ -107,8 +107,8 @@ def post_auth(body: auth.Auth, response: Response):
     responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
 )
 async def delete_auth(response: Response):
-    '''
+    """
     logout
-    '''
+    """
     response.delete_cookie('gauss_refresh_token')
     return {'message': 'Deleted gauss_refresh_token.'}
