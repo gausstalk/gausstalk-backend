@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get(
     '/',
-    response_model=Message,
+    response_model=auth.User,
     responses={
         status.HTTP_404_NOT_FOUND: {'model': Message},
     },
@@ -27,7 +27,7 @@ def get_user(
     ''' Check if there's already the user in the DB. '''
     # Check if there's already the same user.
     if database.user.find_one({'mail': user['mail']}):
-        return {'message': 'User found.'}
+        return {'mail': user['mail'], 'name': user['name']}
 
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
