@@ -49,7 +49,7 @@ async def reader(channel: redis.client.PubSub):
         await asyncio.sleep(0.01)
 
 
-async def get_messages(redis, room_name, offset=0, size=30):
+async def get_messages(redis_cli, room_name, offset=0, size=30):
     """
     Check if room with such name exists, fetch messages from offset to size
     :param database: redis database
@@ -58,11 +58,11 @@ async def get_messages(redis, room_name, offset=0, size=30):
     :param size: number of messages to retrieve
     :return: return lists of messages
     """
-    room_exists = await redis.exists(room_name)
+    room_exists = await redis_cli.exists(room_name)
     if room_exists == 0:
         return []
 
-    values = await redis.lrange(room_name, offset, offset + size)
+    values = await redis_cli.lrange(room_name, offset, offset + size)
     values = list(map(lambda x: json.loads(x.decode("utf-8")), values))
     values.reverse()
     return values

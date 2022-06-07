@@ -2,10 +2,12 @@
 chat models
 """
 
-from typing import Optional
+# pylint: disable=no-name-in-module
+# pylint: disable=too-few-public-methods
+
+from datetime import datetime
 
 from pydantic import BaseModel
-from datetime import datetime
 
 
 class Chat(BaseModel):
