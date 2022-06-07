@@ -7,9 +7,10 @@ from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
-from ...models.chat import Chat, DBChat
-from ...models.message import Message
 from services.redis_cache import get_messages, get_redis
+from apps.user.services.auth_service import auth_user
+from ...models.chat import DBChat
+from ...models.message import Message
 
 router = APIRouter()
 
@@ -22,6 +23,7 @@ router = APIRouter()
         status.HTTP_404_NOT_FOUND: {'model': Message},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {'model': Message}
     },
+    dependencies=[auth_user]
 )
 async def get_messages_for_selected_room(
         room_name: str,
@@ -32,6 +34,7 @@ async def get_messages_for_selected_room(
     """ Get size number of chats """
     try:
         messages = await get_messages(redis, room_name, offset, size)
+    # pylint: disable=bare-except
     except:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

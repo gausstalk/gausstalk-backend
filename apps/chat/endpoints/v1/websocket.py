@@ -13,12 +13,12 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from redis.asyncio import Redis
 
 from services.redis_cache import get_redis, reader
-from apps.user.services.auth_service import auth_user
 
 router = APIRouter()
 
 
 def clean_message(message):
+    """clean_message"""
     def escape(htmlstring):
         """Clean up html from the incoming string"""
         escapes = {'"': "&quot;", "'": "&#39;", "<": "&lt;", ">": "&gt;"}
