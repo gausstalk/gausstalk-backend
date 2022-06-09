@@ -7,10 +7,12 @@ from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
-from ...models.chat import Chat, DBChat
-from ...models.message import Message
 from services.redis_cache import get_messages, get_redis
 from apps.user.services.auth_service import auth_user
+
+from ...models.chat import DBChat
+from ...models.message import Message
+
 
 router = APIRouter()
 
