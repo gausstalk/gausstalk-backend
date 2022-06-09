@@ -23,7 +23,7 @@ router = APIRouter()
         status.HTTP_404_NOT_FOUND: {'model': Message},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {'model': Message}
     },
-    dependencies=[auth_user]
+    dependencies=[Depends(auth_user)],
 )
 async def get_messages_for_selected_room(
         room_name: str,
