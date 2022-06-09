@@ -5,6 +5,7 @@ pre-commit
 pylint
 pymongo
 python-jose[cryptography]
+pytz
 redis
 requests
 uvicorn[standard]
