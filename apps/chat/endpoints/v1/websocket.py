@@ -4,11 +4,12 @@ router prefix is /apps/apps/v1/ws
 '''
 
 import asyncio
-import logging
-from time import time
 import json
-from bson import json_util
+import logging
+from datetime import datetime
 
+import pytz
+from bson import json_util
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from redis.asyncio import Redis
 
@@ -61,7 +62,7 @@ async def websocket_endpoint(
                     message_text = clean_message(message_text)
                     message = {
                         "sender": "Yooha Bae",
-                        "time": time(),
+                        "time": str(datetime.now(tz=pytz.utc).isoformat()),
                         "content": message_text
                     }
                     message_json = json.dumps(message, default=json_util.default)
