@@ -10,9 +10,10 @@ from datetime import datetime
 
 import pytz
 from bson import json_util
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Path
 from redis.asyncio import Redis
 
+from apps.user.services.auth_service import decode
 from services.redis_cache import get_redis, reader
 
 router = APIRouter()
@@ -32,14 +33,19 @@ def clean_message(message):
     return escape(message)
 
 
-@router.websocket('/')
+@router.websocket('/{gauss_access_token}')
 async def websocket_endpoint(
     websocket: WebSocket,
-    redis: Redis = Depends(get_redis)
+    redis: Redis = Depends(get_redis),
+    gauss_access_token: str = Path(default=None),
 ):
     '''
     websocket connection
     '''
+    user = decode(gauss_access_token)
+    if user is None:
+        return
+
     await websocket.accept()
     channel = redis.pubsub()
     await channel.subscribe('companywide')
@@ -61,7 +67,7 @@ async def websocket_endpoint(
                     message_text = done.result()
                     message_text = clean_message(message_text)
                     message = {
-                        "sender": "Yooha Bae",
+                        "sender": user['name'],
                         "time": str(datetime.now(tz=pytz.utc).isoformat()),
                         "content": message_text
                     }
