@@ -32,9 +32,22 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
+def decode(token):
+    '''
+    Decode JWT token.
+    '''
+    try:
+        user_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
+        return user_info
+    # pylint: disable=broad-except
+    except Exception as error:
+        raise Exception('Token is not available.') from error
+
+
 async def auth_user(
-    credentials: HTTPBasicCredentials = Depends(http_bearer),
+    credentials: HTTPBasicCredentials | None = Depends(http_bearer),
     gauss_refresh_token: str | None = Cookie(default=None),
+    gauss_access_token: str | None = None,
 ) -> auth.User | None:
     '''
     Check bearer token and cookie.
@@ -42,7 +55,7 @@ async def auth_user(
     '''
     gauss_access_token = credentials.credentials
     try:
-        user_info = jwt.decode(gauss_access_token, SECRET_KEY, ALGORITHM)
+        user_info = decode(gauss_access_token)
         return {
             'mail': user_info['sub'],
             'name': user_info['name'],
@@ -53,7 +66,7 @@ async def auth_user(
         logging.debug('Decoding gauss_access_token failed. %s', error)
 
     try:
-        user_info = jwt.decode(gauss_refresh_token, SECRET_KEY, ALGORITHM)
+        user_info = decode(gauss_refresh_token)
         gauss_access_token = create_access_token(
             data={
                 'sub': user_info['sub'],
