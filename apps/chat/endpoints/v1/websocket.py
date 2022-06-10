@@ -42,8 +42,10 @@ async def websocket_endpoint(
     '''
     websocket connection
     '''
-    user = decode(gauss_access_token)
-    if user is None:
+    try:
+        user = decode(gauss_access_token)
+    # pylint: disable=broad-except
+    except Exception:
         return
 
     await websocket.accept()
