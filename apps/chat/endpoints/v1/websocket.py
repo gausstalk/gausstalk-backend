@@ -69,7 +69,8 @@ async def websocket_endpoint(
                     message_text = done.result()
                     message_text = clean_message(message_text)
                     message = {
-                        "sender": user['name'],
+                        "sender_mail": user['sub'],
+                        "sender_name": user['name'],
                         "time": str(datetime.now(tz=pytz.utc).isoformat()),
                         "content": message_text
                     }
