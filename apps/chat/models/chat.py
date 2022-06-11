@@ -21,6 +21,7 @@ class DBChat(BaseModel):
     """
     Chat model that goes in db
     """
-    sender: str
+    sender_mail: str
+    sender_name: str
     time: datetime
     content: str
