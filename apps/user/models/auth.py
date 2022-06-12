@@ -18,7 +18,7 @@ class Auth(BaseModel):
     session_state: str
 
 
-class AccessToken(BaseModel):
+class GaussAccessToken(BaseModel):
     '''
     token response
     '''
@@ -32,3 +32,10 @@ class User(BaseModel):
     mail: str
     name: str
     gauss_access_token: Optional[str | None]
+
+
+class MsAccessToken(BaseModel):
+    """
+    MS access token.
+    """
+    ms_access_token: str

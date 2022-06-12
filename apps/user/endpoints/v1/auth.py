@@ -3,15 +3,16 @@ path functions for authentification and authorization
 router prefix is /apps/user/v1/auth
 '''
 
+from datetime import timedelta
 import os
 import urllib.parse
-from datetime import timedelta
 
 import requests
-from fastapi import status, APIRouter, Response, Depends
+from fastapi import status, APIRouter, Response, Cookie, Depends
 from fastapi.responses import JSONResponse
 
-from ...services.auth_service import auth_user, create_access_token
+from services.mongo_service import get_mongo
+from ...services.auth_service import auth_user, create_token
 from ...models import auth
 from ...models.message import Message
 
@@ -23,23 +24,40 @@ router = APIRouter()
 
 @router.get(
     '/',
-    dependencies=[Depends(auth_user)],
     response_model=auth.User,
-    responses={status.HTTP_401_UNAUTHORIZED: {'model': Message}},
+    responses={
+        status.HTTP_404_NOT_FOUND: {'model': Message},
+    },
 )
-async def get_auth(user: auth.User | None = Depends(auth_user)):
-    '''
-    return user if token is valid
-    '''
-    return user
+def get_auth(
+    response: Response,
+    user: auth.User = Depends(auth_user),
+    database=Depends(get_mongo),  # MongoDB database
+    gauss_refresh_token: str | None = Cookie(default=None),
+):
+    """ Check if there's already the user in the DB. """
+    if database.user.find_one({'mail': user['mail']}):
+        if gauss_refresh_token is None:
+            gauss_refresh_token = create_token(
+                data={'sub': user['mail'], 'name': user['name']},
+                expires_delta=timedelta(days=14),
+            )
+            response.set_cookie('gauss_refresh_token', gauss_refresh_token,
+                                secure=True, httponly=True)
+        return user
+
+    return JSONResponse(
+        status_code=status.HTTP_404_NOT_FOUND,
+        content={'message': 'User not found.'},
+    )
 
 
 @router.post(
     '/',
-    response_model=auth.AccessToken,
+    response_model=auth.MsAccessToken,
     responses={500: {'model': Message}},
 )
-def post_auth(body: auth.Auth, response: Response):
+def post_auth(body: auth.Auth):
     '''
     ms login
     '''
@@ -69,35 +87,7 @@ def post_auth(body: auth.Auth, response: Response):
             content={'message': 'Error to get ms_access_token'},
         )
 
-    # get user info from ms
-    ms_response = requests.get(
-        'https://graph.microsoft.com/v1.0/me',
-        headers={'Authorization': 'Bearer ' + ms_access_token},
-    )
-    if ms_response.status_code != status.HTTP_200_OK:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={'message': 'Error to get graph.microsoft.com'},
-        )
-    ms_response_json = ms_response.json()
-
-    # send gauss_access_token, gauss_refresh_token
-    gauss_access_token = create_access_token(
-        data={
-            'sub': ms_response_json['mail'],
-            'name': ms_response_json['displayName'],
-        },
-        expires_delta=timedelta(hours=1),
-    )
-    gauss_refresh_token = create_access_token(
-        data={
-            'sub': ms_response_json['mail'],
-            'name': ms_response_json['displayName'],
-        },
-        expires_delta=timedelta(days=14),
-    )
-    response.set_cookie('gauss_refresh_token', gauss_refresh_token, secure=True, httponly=True)
-    return {'gauss_access_token': gauss_access_token}
+    return {'ms_access_token': ms_access_token}
 
 
 @router.delete(
