@@ -75,3 +75,33 @@ spec:
             secretKeyRef:
               name: environment-variables
               key: MONGO_DB
+        - name: MAIL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MAIL_USERNAME
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MAIL_PASSWORD
+        - name: MAIL_FROM
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MAIL_FROM
+        - name: MAIL_PORT
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MAIL_PORT
+        - name: MAIL_SERVER
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MAIL_SERVER
+        - name: MAIL_FROM_NAME
+          valueFrom:
+            secretKeyRef:
+              name: environment-variables
+              key: MAIL_FROM_NAME
