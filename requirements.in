@@ -9,3 +9,4 @@ pytz
 redis
 requests
 uvicorn[standard]
+fastapi-mail

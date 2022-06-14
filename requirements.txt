@@ -38,6 +38,8 @@ ecdsa==0.17.0
     # via python-jose
 fastapi==0.75.2
     # via -r requirements.in
+fastapi-mail==1.0.9
+    # via -r requirements.in
 filelock==3.7.1
     # via virtualenv
 gunicorn==20.1.0
