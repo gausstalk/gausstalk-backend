@@ -45,7 +45,6 @@ def get_register_exists(
 @router.put(
     '/',
     responses={
-        status.HTTP_401_UNAUTHORIZED: {'model': Message},
         status.HTTP_404_NOT_FOUND: {'model': Message},
         status.HTTP_500_INTERNAL_SERVER_ERROR: {'model': Message}
     },
