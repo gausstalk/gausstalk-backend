@@ -1,11 +1,10 @@
 '''
 Path functions for /apps/meeting
 '''
-from typing import List
 
 import datetime
 
-from fastapi import status, APIRouter, Depends, Response
+from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from services.mongo_service import get_mongo
@@ -65,7 +64,7 @@ def put_register(
             status_code=status.HTTP_200_OK,
             content={'message': 'Register completed'}
         )
-    except:
+    except (KeyError, TypeError):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
