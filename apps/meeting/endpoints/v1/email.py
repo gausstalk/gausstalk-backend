@@ -1,30 +1,33 @@
 '''
 Path functions for /apps/meeting
 '''
+import datetime
 import os
 import random
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-import datetime
 
 from fastapi import status, APIRouter, Depends, BackgroundTasks
-
 from fastapi.responses import JSONResponse
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 
 from services.mongo_service import get_mongo
 
 router = APIRouter()
 
 
+# pylint: disable=too-few-public-methods
 class Envs:
+    """
+    Environment for fastapi mail
+    """
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     MAIL_FROM = os.getenv('MAIL_FROM')
     MAIL_PORT = int(os.getenv('MAIL_PORT'))
     MAIL_SERVER = os.getenv('MAIL_SERVER')
     MAIL_FROM_NAME = os.getenv('MAIL_FROM_NAME')
-    MAIL_TLS = True,
-    MAIL_SSL = False,
-    USE_CREDENTIALS = True,
+    MAIL_TLS = True
+    MAIL_SSL = False
+    USE_CREDENTIALS = True
     VALIDATE_CERTS = True
 
 
@@ -41,7 +44,10 @@ conf = ConnectionConfig(
 )
 
 
-def get_matching_failure_html():
+def get_matching_failure_text():
+    """
+    Returns failing text of email
+    """
     return """
 Hello,
 this is GaussTalk. 
@@ -57,6 +63,9 @@ GaussTalk
 
 
 def get_matching_success_text(recipient, matched_recipient_list):
+    """
+    Returns success text of email
+    """
     matched_opponents = None
     for group in matched_recipient_list:
         if recipient in group:
@@ -74,7 +83,7 @@ this is GaussTalk.
 Below includes the email of your random 1:1.
 Please contact your match to set up a time for your 1:1!
 
-You (""" + recipient + """) have been matched with """ + opponent_string + """. 
+You (""" + recipient + """) have been matched with """ + opponent_string + """.
 
 Enjoy your random 1:1!
 GaussTalk
@@ -90,11 +99,12 @@ async def simple_send(
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     # today = datetime.date.today()
     try:
-        emails = database.meetings.find({'date': yesterday.strftime('%Y-%m-%d')}, {'_id': 0, 'date': 0})
+        emails = (database.meetings.find({'date': yesterday.strftime('%Y-%m-%d')},
+                                         {'_id': 0, 'date': 0}))
         recipients = []
         for email in emails:
             recipients.append(email['mail'])
-    except:
+    except (TypeError, KeyError):
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             content={"message": "email sending failed"})
 
@@ -106,19 +116,29 @@ async def simple_send(
             list_of_groups[-1].append(*solo)
         return list_of_groups
 
-    fm = FastMail(conf)
+    fastmail = FastMail(conf)
 
     if len(recipients) == 0:
         return JSONResponse(status_code=200, content={"message": "no emails to send"})
 
-    matched_recipients = match_recipients(recipients)
-    for recipient in recipients:
-        text = get_matching_success_text(recipient, matched_recipients)
+    if len(recipients) == 1:
+        text = get_matching_failure_text()
         message = MessageSchema(
             subject="1:1 Matching Complete",
-            recipients=[recipient],  # List of recipients, as many as you can pass
+            recipients=recipients,  # List of recipients, as many as you can pass
             body=text,
             subtype="plain"
         )
-        background_tasks.add_task(fm.send_message, message)
+        background_tasks.add_task(fastmail.send_message, message)
+    else:
+        matched_recipients = match_recipients(recipients)
+        for recipient in recipients:
+            text = get_matching_success_text(recipient, matched_recipients)
+            message = MessageSchema(
+                subject="1:1 Matching Complete",
+                recipients=[recipient],  # List of recipients, as many as you can pass
+                body=text,
+                subtype="plain"
+            )
+            background_tasks.add_task(fastmail.send_message, message)
     return JSONResponse(status_code=200, content={"message": "email has been sent"})
