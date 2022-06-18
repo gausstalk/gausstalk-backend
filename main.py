@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from apps import router as apps_router
-from apps.meeting.endpoints.v1.email import send_emails_daily
+from services.email import send_emails_daily
 from services import redis_cache, mongo_service
 
 app = FastAPI()
