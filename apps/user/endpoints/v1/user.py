@@ -45,7 +45,7 @@ def get_user(
                 expires_delta=timedelta(days=14),
             )
             response.set_cookie('gauss_refresh_token', gauss_refresh_token,
-                                secure=True, httponly=True)
+                                secure=True, httponly=True, expires=14*24*60*60)
             return {
                 'mail': mail,
                 'name': name,
@@ -102,7 +102,7 @@ def put_user(
         expires_delta=timedelta(days=14),
     )
     response.set_cookie('gauss_refresh_token', gauss_refresh_token,
-                        secure=True, httponly=True)
+                        secure=True, httponly=True, expires=14*24*60*60)
     return {
         'mail': mail,
         'name': name,

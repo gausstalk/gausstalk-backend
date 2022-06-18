@@ -3,9 +3,9 @@ path functions for authentification and authorization
 router prefix is /apps/user/v1/auth
 '''
 
-from datetime import timedelta
 import os
 import urllib.parse
+from datetime import timedelta
 
 import requests
 from fastapi import status, APIRouter, Response, Cookie, Depends
@@ -43,7 +43,7 @@ def get_auth(
                 expires_delta=timedelta(days=14),
             )
             response.set_cookie('gauss_refresh_token', gauss_refresh_token,
-                                secure=True, httponly=True)
+                                secure=True, httponly=True, expires=14*24*60*60)
         return user
 
     return JSONResponse(
