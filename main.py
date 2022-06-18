@@ -2,12 +2,14 @@
 gausstalk backend entrypoint
 '''
 
+import asyncio
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from apps import router as apps_router
+from apps.meeting.endpoints.v1.email import send_emails_daily
 from services import redis_cache, mongo_service
 
 app = FastAPI()
@@ -31,6 +33,8 @@ async def startup_event():
     '''
     app.state.redis = redis_cache.REDIS
     app.state.mongo_db = mongo_service.mongo_db
+
+    asyncio.create_task(send_emails_daily())
 
 
 @app.get("/")

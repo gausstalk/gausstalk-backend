@@ -1,4 +1,5 @@
 fastapi
+fastapi-mail
 gunicorn
 pip-tools
 pre-commit
@@ -8,5 +9,5 @@ python-jose[cryptography]
 pytz
 redis
 requests
+schedule
 uvicorn[standard]
-fastapi-mail

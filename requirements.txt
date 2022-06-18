@@ -4,8 +4,13 @@
 #
 #    pip-compile requirements.in
 #
+aioredis==2.0.1
+    # via fastapi-mail
+aiosmtplib==1.1.6
+    # via fastapi-mail
 anyio==3.5.0
     # via
+    #   httpcore
     #   starlette
     #   watchgod
 asgiref==3.5.1
@@ -13,9 +18,16 @@ asgiref==3.5.1
 astroid==2.11.5
     # via pylint
 async-timeout==4.0.2
-    # via redis
+    # via
+    #   aioredis
+    #   redis
+blinker==1.4
+    # via fastapi-mail
 certifi==2021.10.8
-    # via requests
+    # via
+    #   httpcore
+    #   httpx
+    #   requests
 cffi==1.15.0
     # via cryptography
 cfgv==3.3.1
@@ -34,30 +46,50 @@ dill==0.3.5.1
     # via pylint
 distlib==0.3.4
     # via virtualenv
+dnspython==2.2.1
+    # via email-validator
 ecdsa==0.17.0
     # via python-jose
+email-validator==1.2.1
+    # via fastapi-mail
+fakeredis==1.8.1
+    # via fastapi-mail
 fastapi==0.75.2
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   fastapi-mail
 fastapi-mail==1.0.9
     # via -r requirements.in
 filelock==3.7.1
     # via virtualenv
 gunicorn==20.1.0
     # via -r requirements.in
-h11==0.13.0
-    # via uvicorn
+h11==0.12.0
+    # via
+    #   httpcore
+    #   uvicorn
+httpcore==0.15.0
+    # via httpx
 httptools==0.4.0
     # via uvicorn
+httpx==0.23.0
+    # via fastapi-mail
 identify==2.5.1
     # via pre-commit
 idna==3.3
     # via
     #   anyio
+    #   email-validator
     #   requests
+    #   rfc3986
 isort==5.10.1
     # via pylint
+jinja2==3.1.2
+    # via fastapi-mail
 lazy-object-proxy==1.7.1
     # via astroid
+markupsafe==2.1.1
+    # via jinja2
 mccabe==0.7.0
     # via pylint
 nodeenv==1.6.0
@@ -81,7 +113,9 @@ pyasn1==0.4.8
 pycparser==2.21
     # via cffi
 pydantic==1.9.0
-    # via fastapi
+    # via
+    #   fastapi
+    #   fastapi-mail
 pylint==2.14.0
     # via -r requirements.in
 pymongo==4.1.1
@@ -92,6 +126,8 @@ python-dotenv==0.20.0
     # via uvicorn
 python-jose[cryptography]==3.3.0
     # via -r requirements.in
+python-multipart==0.0.5
+    # via fastapi-mail
 pytz==2022.1
     # via -r requirements.in
 pyyaml==6.0
@@ -99,17 +135,30 @@ pyyaml==6.0
     #   pre-commit
     #   uvicorn
 redis==4.3.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   fakeredis
 requests==2.27.1
     # via -r requirements.in
+rfc3986[idna2008]==1.5.0
+    # via httpx
 rsa==4.8
     # via python-jose
+schedule==1.1.0
+    # via -r requirements.in
 six==1.16.0
     # via
     #   ecdsa
+    #   fakeredis
+    #   python-multipart
     #   virtualenv
 sniffio==1.2.0
-    # via anyio
+    # via
+    #   anyio
+    #   httpcore
+    #   httpx
+sortedcontainers==2.4.0
+    # via fakeredis
 starlette==0.17.1
     # via fastapi
 toml==0.10.2
@@ -121,7 +170,9 @@ tomli==2.0.1
 tomlkit==0.11.0
     # via pylint
 typing-extensions==4.2.0
-    # via pydantic
+    # via
+    #   aioredis
+    #   pydantic
 urllib3==1.26.9
     # via requests
 uvicorn[standard]==0.17.6
@@ -144,9 +195,3 @@ wrapt==1.14.1
 # The following packages are considered to be unsafe in a requirements file:
 # pip
 # setuptools
-
-asyncio~=3.4.3
-django-timedeltafield~=0.7.10
-pip~=22.0.4
-Jinja2~=3.1.2
-setuptools~=58.1.0

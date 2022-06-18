@@ -1,12 +1,14 @@
 '''
 Path functions for /apps/meeting
 '''
+import asyncio
 import datetime
+import logging
 import os
 import random
 
-from fastapi import status, APIRouter, Depends, BackgroundTasks
-from fastapi.responses import JSONResponse
+import schedule
+from fastapi import APIRouter
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 
 from services.mongo_service import get_mongo
@@ -83,14 +85,12 @@ Gauss Talk
 """
 
 
-@router.post("/")
-async def simple_send(
-        background_tasks: BackgroundTasks,
-        database=Depends(get_mongo)
-):
+def simple_send():
     """Get yesterday's email and send it"""
+
+    database = get_mongo()
+
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
-    # today = datetime.date.today()
     try:
         emails = (database.meetings.find({'date': yesterday.strftime('%Y-%m-%d')},
                                          {'_id': 0, 'date': 0}))
@@ -98,8 +98,8 @@ async def simple_send(
         for email in emails:
             recipients.append(email['mail'])
     except (TypeError, KeyError):
-        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            content={"message": "email sending failed"})
+        logging.error("email sending failed")
+        return
 
     def match_recipients(people):
         random.shuffle(people)
@@ -112,7 +112,8 @@ async def simple_send(
     fastmail = FastMail(conf)
 
     if len(recipients) == 0:
-        return JSONResponse(status_code=200, content={"message": "no emails to send"})
+        logging.info("no emails to send")
+        return
 
     if len(recipients) == 1:
         text = get_matching_failure_text()
@@ -122,7 +123,7 @@ async def simple_send(
             body=text,
             subtype="plain"
         )
-        background_tasks.add_task(fastmail.send_message, message)
+        asyncio.create_task(fastmail.send_message(message))
     else:
         list_of_groups = match_recipients(recipients)
         for group in list_of_groups:
@@ -133,5 +134,18 @@ async def simple_send(
                 body=text,
                 subtype="plain"
             )
-            background_tasks.add_task(fastmail.send_message, message)
-    return JSONResponse(status_code=200, content={"message": "email has been sent"})
+            asyncio.create_task(fastmail.send_message(message))
+
+    logging.info("email has been sent")
+
+
+async def send_emails_daily():
+    """
+    Send emails daily basis.
+    """
+
+    schedule.every().day.at("00:00").do(simple_send)  # localtime=Asia/Seoul
+
+    while True:
+        schedule.run_pending()
+        await asyncio.sleep(60)  # wait some seconds
