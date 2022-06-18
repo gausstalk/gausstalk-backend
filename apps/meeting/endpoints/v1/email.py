@@ -50,7 +50,7 @@ def get_matching_failure_text():
     """
     return """
 Hello,
-this is GaussTalk. 
+this is Gauss Talk.
 
 We are sorry to inform you that the 1:1 matching you have requested have failed due to insufficient participants.
 If you would like to do random 1:1s tomorrow please register by our website.
@@ -58,35 +58,28 @@ We will match you as soon as possible.
 
 Sorry for the inconvenience.
 
-GaussTalk 
+Gauss Talk
     """
 
 
-def get_matching_success_text(recipient, matched_recipient_list):
+def get_matching_success_text(matched_recipient_list):
     """
     Returns success text of email
     """
-    matched_opponents = None
-    for group in matched_recipient_list:
-        if recipient in group:
-            others = [x for x in group if x != recipient]
-            matched_opponents = others
 
-    opponent_string = ""
-    if len(matched_opponents) > 1:
-        opponent_string = matched_opponents[0] + " and " + matched_opponents[1]
-    else:
-        opponent_string = matched_opponents[0]
-    return """
+    str_recipients = ', '.join(matched_recipient_list[:-1]) + ' and ' + \
+        matched_recipient_list[-1]
+
+    return f"""
 Hello,
-this is GaussTalk. 
+this is Gauss Talk.
 Below includes the email of your random 1:1.
 Please contact your match to set up a time for your 1:1!
 
-You (""" + recipient + """) have been matched with """ + opponent_string + """.
+{str_recipients} have been matched!
 
 Enjoy your random 1:1!
-GaussTalk
+Gauss Talk
 """
 
 
@@ -131,12 +124,12 @@ async def simple_send(
         )
         background_tasks.add_task(fastmail.send_message, message)
     else:
-        matched_recipients = match_recipients(recipients)
-        for recipient in recipients:
-            text = get_matching_success_text(recipient, matched_recipients)
+        list_of_groups = match_recipients(recipients)
+        for group in list_of_groups:
+            text = get_matching_success_text(group)
             message = MessageSchema(
                 subject="1:1 Matching Complete",
-                recipients=[recipient],  # List of recipients, as many as you can pass
+                recipients=group,  # List of recipients, as many as you can pass
                 body=text,
                 subtype="plain"
             )
