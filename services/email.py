@@ -11,7 +11,7 @@ import schedule
 from fastapi import APIRouter
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 
-from services.mongo_service import get_mongo
+from .mongo_service import get_mongo
 
 router = APIRouter()
 
@@ -92,11 +92,18 @@ def simple_send():
 
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
     try:
-        emails = (database.meetings.find({'date': yesterday.strftime('%Y-%m-%d')},
-                                         {'_id': 0, 'date': 0}))
-        recipients = []
-        for email in emails:
-            recipients.append(email['mail'])
+        # Preventing multiple workers getting the same registrations.
+        registrations = []
+        while registration := database.meetings.find_one_and_update(
+                filter={
+                    'date': yesterday.strftime('%Y-%m-%d'),
+                    'sent': {'$ne': True},
+                },
+                update={'$set': {'sent': True}},
+        ):
+            registrations.append(registration)
+
+        recipients = [registration['mail'] for registration in registrations]
     except (TypeError, KeyError):
         logging.error("email sending failed")
         return
