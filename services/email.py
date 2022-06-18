@@ -9,7 +9,7 @@ import random
 
 import schedule
 from fastapi import APIRouter
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 
 from services.mongo_service import get_mongo
 
