@@ -3,8 +3,11 @@ CRUD of Lunch Together appointments.
 Path: /apps/lunch-together/v1/appointments/
 """
 
+from bson import ObjectId
+from bson.errors import InvalidId
 from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
+from pymongo.errors import PyMongoError
 
 from apps.user.models.auth import User
 from apps.user.models.message import Message
@@ -46,6 +49,54 @@ def post_appointment(
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
             content={'message': 'Appointment created.'},
+        )
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
+
+
+@router.delete(
+    '/{appointment_id}',
+    dependencies=[Depends(auth_user)],
+    responses={
+        status.HTTP_200_OK: {
+            'model': Message,
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'model': Message,
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        },
+    },
+)
+def delete_appointment(
+        appointment_id: str,
+        database=Depends(get_mongo),
+):
+    """
+    Delete an appointment.
+    """
+    try:
+        result = database.lunch_appointments.delete_one({
+            '_id':
+            ObjectId(appointment_id),
+        })
+        if result.deleted_count == 0:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={'message': 'Appointment not found.'},
+            )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={'message': 'Appointment deleted.'},
+        )
+    except InvalidId as error:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={'message': str(error)},
         )
     except PyMongoError as error:
         return JSONResponse(
