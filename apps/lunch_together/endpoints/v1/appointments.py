@@ -57,6 +57,70 @@ def post_appointment(
         )
 
 
+@router.put(
+    '/{appointment_id}',
+    responses={
+        status.HTTP_200_OK: {
+            'model': Message,
+        },
+        status.HTTP_201_CREATED: {
+            'model': Message,
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        },
+    },
+)
+def put_appointment(
+        appointment_id: str,
+        appointment: Appointment,
+        database=Depends(get_mongo),
+        user: User = Depends(auth_user),
+):
+    """
+    Put an appointment.
+    """
+
+    document_dict = {
+        'restaurant_id': appointment.restaurant_id,
+        'title': appointment.title,
+        'datetime': appointment.datetime,
+        'n_participants': appointment.n_participants,
+        'meeting_point': appointment.meeting_point,
+        'organizer_mail': user['mail'],
+    }
+
+    try:
+        original_appointment = database.lunch_appointments.find_one_and_update(
+            {'_id': ObjectId(appointment_id)},
+            {'$set': document_dict},
+        )
+        if original_appointment is not None:
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={'message': 'Appointment edited.'},
+            )
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
+
+    # Create an appointment if not existing.
+    document_dict.update({'_id': ObjectId(appointment_id)})
+    try:
+        database.lunch_appointments.insert_one(document_dict)
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={'message': 'Appointment created.'},
+        )
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
+
+
 @router.delete(
     '/{appointment_id}',
     dependencies=[Depends(auth_user)],
