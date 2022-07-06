@@ -10,12 +10,21 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class Appointment(BaseModel):
+class AppointmentRequest(BaseModel):
     """
-    Appointment model.
+    Appointment request body.
     """
     restaurant_id: int | None = None
     title: str
     datetime: datetime
     n_participants: int
     meeting_point: str | None = None
+
+
+class AppointmentResponse(AppointmentRequest):
+    """
+    Appointment response body.
+    """
+    id: str
+    organizer_mail: str
+    organizer_name: str
