@@ -3,6 +3,9 @@ CRUD of Lunch Together appointments.
 Path: /apps/lunch-together/v1/appointments/
 """
 
+from datetime import datetime
+from typing import List
+
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import status, APIRouter, Depends
@@ -13,9 +16,48 @@ from apps.user.models.auth import User
 from apps.user.models.message import Message
 from apps.user.services.auth_service import auth_user
 from services.mongo_service import get_mongo
-from ...models.appointments import Appointment
+from ...models.appointments import AppointmentRequest, AppointmentResponse
 
 router = APIRouter()
+
+
+@router.get(
+    '/',
+    dependencies=[Depends(auth_user)],
+    response_model=List[AppointmentResponse],
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        },
+    },
+)
+def get_appointment(database=Depends(get_mongo)):
+    """
+    Get an appointment whose datetime is after now.
+    """
+    try:
+        appointments = list(
+            database.lunch_appointments.find({
+                'datetime': {
+                    '$gt': datetime.now(),
+                },
+            }))
+
+        # Join lunch_appointments and user collection.
+        for appointment in appointments:
+            user = database.user.find_one({
+                'mail':
+                appointment['organizer_mail'],
+            })
+            appointment['id'] = str(appointment['_id'])
+            appointment['organizer_name'] = user['name']
+
+        return appointments
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
 
 
 @router.post(
@@ -30,7 +72,7 @@ router = APIRouter()
     },
 )
 def post_appointment(
-        appointment: Appointment,
+        appointment: AppointmentRequest,
         database=Depends(get_mongo),
         user: User = Depends(auth_user),
 ):
@@ -73,7 +115,7 @@ def post_appointment(
 )
 def put_appointment(
         appointment_id: str,
-        appointment: Appointment,
+        appointment: AppointmentRequest,
         database=Depends(get_mongo),
         user: User = Depends(auth_user),
 ):
