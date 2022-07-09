@@ -1,5 +1,5 @@
 '''
-Path functions for /apps/meeting
+Path functions for /apps/meeting/v1/
 '''
 
 import datetime
@@ -73,3 +73,40 @@ def put_register(
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@router.delete(
+    '/',
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            'model': Message,
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        }
+    },
+)
+def delete_register(
+        user: auth.User = Depends(auth_user),
+        database=Depends(get_mongo),
+):
+    """ Delete the registration from the DB. """
+
+    today = datetime.date.today()
+
+    try:
+        ret = database.meetings.delete_one({
+            'mail': user['mail'],
+            'date': today.strftime("%Y-%m-%d"),
+        })
+        if ret.deleted_count == 0:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={'message': 'Registration not found.'},
+            )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={'message': 'Deleted registration.'},
+        )
+    except (KeyError, TypeError, PyMongoError):
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
