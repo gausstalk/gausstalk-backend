@@ -6,6 +6,7 @@ import datetime
 
 from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
+from pymongo.errors import PyMongoError
 
 from services.mongo_service import get_mongo
 from apps.user.services.auth_service import auth_user
@@ -58,12 +59,17 @@ def put_register(
     today = datetime.date.today()
 
     try:
-        database.meetings.insert_one({'mail': user['mail'], 'date': today.strftime("%Y-%m-%d")})
+        document = {'mail': user['mail'], 'date': today.strftime("%Y-%m-%d")}
+        database.meetings.update_one(
+            document,
+            {'$set': document},
+            upsert=True,
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={'message': 'Register completed'}
         )
-    except (KeyError, TypeError):
+    except (KeyError, TypeError, PyMongoError):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
