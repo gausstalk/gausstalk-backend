@@ -3,7 +3,7 @@ router prefix is /apps/v1/meeting
 '''
 
 from fastapi import APIRouter
-from services.email import router as email_router
+from app.services.email import router as email_router
 from .meeting import router as meeting_router
 
 router = APIRouter()

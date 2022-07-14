@@ -8,7 +8,7 @@ from fastapi import status, APIRouter, Response, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasicCredentials
 
-from services.mongo_service import get_mongo
+from app.services.mongo_service import get_mongo
 from ...services.auth_service import create_token, get_user_from_ms, http_bearer
 from ...models import auth
 from ...models.message import Message

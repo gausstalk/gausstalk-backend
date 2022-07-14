@@ -11,7 +11,7 @@ import requests
 from fastapi import status, APIRouter, Response, Cookie, Depends
 from fastapi.responses import JSONResponse
 
-from services.mongo_service import get_mongo
+from app.services.mongo_service import get_mongo
 from ...services.auth_service import auth_user, create_token
 from ...models import auth
 from ...models.message import Message
