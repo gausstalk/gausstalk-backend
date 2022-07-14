@@ -5,6 +5,7 @@ pip-tools
 pre-commit
 pylint
 pymongo
+pytest
 python-jose[cryptography]
 pytz
 redis

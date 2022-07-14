@@ -21,6 +21,8 @@ async-timeout==4.0.2
     # via
     #   aioredis
     #   redis
+attrs==21.4.0
+    # via pytest
 blinker==1.4
     # via fastapi-mail
 certifi==2021.10.8
@@ -82,6 +84,8 @@ idna==3.3
     #   email-validator
     #   requests
     #   rfc3986
+iniconfig==1.1.1
+    # via pytest
 isort==5.10.1
     # via pylint
 jinja2==3.1.2
@@ -95,7 +99,9 @@ mccabe==0.7.0
 nodeenv==1.6.0
     # via pre-commit
 packaging==21.3
-    # via redis
+    # via
+    #   pytest
+    #   redis
 pep517==0.12.0
     # via pip-tools
 pip-tools==6.6.2
@@ -104,8 +110,12 @@ platformdirs==2.5.2
     # via
     #   pylint
     #   virtualenv
+pluggy==1.0.0
+    # via pytest
 pre-commit==2.19.0
     # via -r requirements.in
+py==1.11.0
+    # via pytest
 pyasn1==0.4.8
     # via
     #   python-jose
@@ -122,6 +132,8 @@ pymongo==4.1.1
     # via -r requirements.in
 pyparsing==3.0.9
     # via packaging
+pytest==7.1.2
+    # via -r requirements.in
 python-dotenv==0.20.0
     # via uvicorn
 python-jose[cryptography]==3.3.0
@@ -167,6 +179,7 @@ tomli==2.0.1
     # via
     #   pep517
     #   pylint
+    #   pytest
 tomlkit==0.11.0
     # via pylint
 typing-extensions==4.2.0
