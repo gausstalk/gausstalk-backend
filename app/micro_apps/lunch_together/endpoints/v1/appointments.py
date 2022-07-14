@@ -12,10 +12,10 @@ from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
-from apps.user.models.auth import User
-from apps.user.models.message import Message
-from apps.user.services.auth_service import auth_user
-from services.mongo_service import get_mongo
+from app.micro_apps.user.models.auth import User
+from app.micro_apps.user.models.message import Message
+from app.micro_apps.user.services.auth_service import auth_user
+from app.services.mongo_service import get_mongo
 from ...models.appointments import AppointmentRequest, AppointmentResponse
 
 router = APIRouter()

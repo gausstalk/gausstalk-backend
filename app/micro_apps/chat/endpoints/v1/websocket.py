@@ -13,8 +13,8 @@ from bson import json_util
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Path
 from redis.asyncio import Redis
 
-from apps.user.services.auth_service import decode
-from services.redis_cache import get_redis, reader
+from app.micro_apps.user.services.auth_service import decode
+from app.services.redis_cache import get_redis, reader
 
 router = APIRouter()
 

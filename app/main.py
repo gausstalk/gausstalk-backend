@@ -8,9 +8,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from apps import router as apps_router
-from services.email import send_emails_daily
-from services import redis_cache, mongo_service
+from app.micro_apps import router as apps_router
+from app.services.email import send_emails_daily
+from app.services import redis_cache, mongo_service
 
 app = FastAPI()
 app.include_router(apps_router, prefix="/apps")

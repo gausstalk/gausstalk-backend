@@ -7,8 +7,8 @@ from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from redis.asyncio import Redis
 
-from services.redis_cache import get_messages, get_redis
-from apps.user.services.auth_service import auth_user
+from app.services.redis_cache import get_messages, get_redis
+from app.micro_apps.user.services.auth_service import auth_user
 
 from ...models.chat import DBChat
 from ...models.message import Message

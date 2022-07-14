@@ -8,11 +8,11 @@ from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
 
-from services.mongo_service import get_mongo
-from apps.user.services.auth_service import auth_user
+from app.services.mongo_service import get_mongo
+from app.micro_apps.user.services.auth_service import auth_user
 
-from apps.chat.models.message import Message
-from apps.user.models import auth
+from app.micro_apps.chat.models.message import Message
+from app.micro_apps.user.models import auth
 
 router = APIRouter()
 
