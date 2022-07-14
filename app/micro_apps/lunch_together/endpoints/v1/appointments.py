@@ -15,6 +15,7 @@ from pymongo.errors import PyMongoError
 from app.micro_apps.user.models.auth import User
 from app.micro_apps.user.models.message import Message
 from app.micro_apps.user.services.auth_service import auth_user
+from app.models.object_id import ObjectIdModel
 from app.services.mongo_service import get_mongo
 from ...models.appointments import AppointmentRequest, AppointmentResponse
 
@@ -64,7 +65,7 @@ def get_appointment(database=Depends(get_mongo)):
     '/',
     responses={
         status.HTTP_201_CREATED: {
-            'model': Message,
+            'model': ObjectIdModel,
         },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             'model': Message,
@@ -80,17 +81,23 @@ def post_appointment(
     Post an appointment.
     """
     try:
-        database.lunch_appointments.insert_one({
-            'restaurant_id': appointment.restaurant_id,
-            'title': appointment.title,
-            'datetime': appointment.datetime,
-            'n_participants': appointment.n_participants,
-            'meeting_point': appointment.meeting_point,
-            'organizer_mail': user['mail'],
+        result = database.lunch_appointments.insert_one({
+            'restaurant_id':
+            appointment.restaurant_id,
+            'title':
+            appointment.title,
+            'datetime':
+            appointment.datetime,
+            'n_participants':
+            appointment.n_participants,
+            'meeting_point':
+            appointment.meeting_point,
+            'organizer_mail':
+            user['mail'],
         })
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            content={'message': 'Appointment created.'},
+            content={'object_id': str(result.inserted_id)},
         )
     except PyMongoError as error:
         return JSONResponse(
