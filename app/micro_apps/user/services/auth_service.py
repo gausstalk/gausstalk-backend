@@ -48,14 +48,13 @@ def decode(token):
 def auth_user(
     credentials: HTTPBasicCredentials | None = Depends(http_bearer),
     gauss_refresh_token: str | None = Cookie(default=None),
-    gauss_access_token: str | None = None,
 ) -> auth.User | None:
     '''
     Check bearer token and cookie.
     Return User or None.
     '''
-    if gauss_access_token is None:
-        gauss_access_token = credentials.credentials
+
+    gauss_access_token = credentials.credentials
 
     try:
         user_info = decode(gauss_access_token)
