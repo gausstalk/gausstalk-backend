@@ -7,9 +7,17 @@ Model for /apps/gausshelin/v1/reviews.
 from pydantic import BaseModel
 
 
-class Review(BaseModel):
+class ReviewRequest(BaseModel):
     """
-    Model for gausshelin review.
+    Model for gausshelin review request.
     """
     stars: int
     comment: str
+
+
+class ReviewResponse(ReviewRequest):
+    """
+    Model for gausshelin review response.
+    """
+    id: str
+    user_mail: str
