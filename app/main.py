@@ -13,6 +13,7 @@ from app.services.email import send_emails_daily
 from app.services import redis_cache, mongo_service
 
 app = FastAPI()
+app.router.redirect_slashes = False
 app.include_router(apps_router, prefix="/apps")
 app.add_middleware(
     CORSMiddleware,
