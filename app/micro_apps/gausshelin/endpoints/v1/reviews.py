@@ -162,3 +162,60 @@ def put_review(
     review['id'] = str(review['_id'])
 
     return review
+
+
+@router.delete(
+    '/{review_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_204_NO_CONTENT: {},
+        status.HTTP_401_UNAUTHORIZED: {
+            'model': Message,
+        },
+        status.HTTP_404_NOT_FOUND: {},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        },
+    },
+)
+def delete_review(
+        review_id: str,
+        user: User = Depends(auth_user),
+        database=Depends(get_mongo),
+):
+    """
+    Delete a review of a restaurant from the DB.
+    """
+
+    try:
+        review = database.gausshelin_reviews.find_one({
+            '_id':
+            ObjectId(review_id),
+        })
+
+        if not review:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND)
+
+        if user['mail'] != review['user_mail']:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    'message': "Not allowed to edit other user's review.",
+                },
+            )
+
+        result = database.gausshelin_reviews.delete_one({
+            '_id':
+            ObjectId(review_id),
+        })
+
+        if result.deleted_count == 0:
+            return JSONResponse(status_code=status.HTTP_404_NOT_FOUND)
+
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
+
+    return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
