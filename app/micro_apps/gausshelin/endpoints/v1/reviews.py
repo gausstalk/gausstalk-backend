@@ -4,8 +4,10 @@ Path: /apps/gausshelin/v1/reviews
 """
 
 from typing import List
+from bson import ObjectId
 from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
+from pymongo import ReturnDocument
 from pymongo.errors import PyMongoError
 from app.micro_apps.user.models.auth import User
 from app.micro_apps.user.models.message import Message
@@ -99,3 +101,64 @@ def get_reviews(
         review.pop('restaurant_id')
 
     return reviews
+
+
+@router.put(
+    '/{review_id}',
+    response_model=ReviewResponse,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            'model': Message,
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'model': Message,
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        },
+    },
+)
+def put_review(
+        review_id: str,
+        review: ReviewRequest,
+        user: User = Depends(auth_user),
+        database=Depends(get_mongo),
+):
+    """
+    Edit a review of a restaurant in the DB.
+    """
+
+    try:
+        review = database.gausshelin_reviews.find_one({
+            '_id':
+            ObjectId(review_id),
+        })
+
+        if not review:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={'message': 'Review not found.'},
+            )
+
+        if user['mail'] != review['user_mail']:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    'message': "Not allowed to edit other user's review.",
+                },
+            )
+
+        review = database.gausshelin_reviews.find_one_and_update(
+            {'_id': ObjectId(review_id)},
+            {'$set': review.dict()},
+            return_document=ReturnDocument.AFTER,
+        )
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
+
+    review['id'] = str(review['_id'])
+
+    return review
