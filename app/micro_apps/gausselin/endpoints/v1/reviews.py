@@ -1,6 +1,6 @@
 """
-CRUD of gausshelin reviews.
-Path: /apps/gausshelin/v1/reviews
+CRUD of gausselin reviews.
+Path: /apps/gausselin/v1/reviews
 """
 
 from typing import List
@@ -45,7 +45,7 @@ def post_review(
         review = review.dict()
         review['restaurant_id'] = restaurant_id
         review['user_mail'] = user['mail']
-        object_id = database.gausshelin_reviews.insert_one(review).inserted_id
+        object_id = database.gausselin_reviews.insert_one(review).inserted_id
     except PyMongoError as error:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -80,7 +80,7 @@ def get_reviews(
 
     try:
         reviews = list(
-            database.gausshelin_reviews.find({
+            database.gausselin_reviews.find({
                 'restaurant_id': restaurant_id,
             }))
     except PyMongoError as error:
@@ -129,7 +129,7 @@ def put_review(
     """
 
     try:
-        review = database.gausshelin_reviews.find_one({
+        review = database.gausselin_reviews.find_one({
             '_id':
             ObjectId(review_id),
         })
@@ -148,7 +148,7 @@ def put_review(
                 },
             )
 
-        review = database.gausshelin_reviews.find_one_and_update(
+        review = database.gausselin_reviews.find_one_and_update(
             {'_id': ObjectId(review_id)},
             {'$set': review.dict()},
             return_document=ReturnDocument.AFTER,
@@ -188,7 +188,7 @@ def delete_review(
     """
 
     try:
-        review = database.gausshelin_reviews.find_one({
+        review = database.gausselin_reviews.find_one({
             '_id':
             ObjectId(review_id),
         })
@@ -204,7 +204,7 @@ def delete_review(
                 },
             )
 
-        result = database.gausshelin_reviews.delete_one({
+        result = database.gausselin_reviews.delete_one({
             '_id':
             ObjectId(review_id),
         })

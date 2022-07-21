@@ -1,5 +1,5 @@
 """
-router prefix is /apps/gausshelin
+router prefix is /apps/gausselin
 """
 
 from fastapi import APIRouter
