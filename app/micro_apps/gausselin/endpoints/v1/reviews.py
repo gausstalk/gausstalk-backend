@@ -4,14 +4,19 @@ Path: /apps/gausselin/v1/reviews
 """
 
 from typing import List
+from datetime import datetime
+
+import pymongo
 from bson import ObjectId
 from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pymongo import ReturnDocument
 from pymongo.errors import PyMongoError
+
 from app.micro_apps.user.models.auth import User
 from app.micro_apps.user.models.message import Message
 from app.micro_apps.user.services.auth_service import auth_user
+from app.micro_apps.user.services.user_info import get_name
 from app.models.object_id import ObjectIdModel
 from app.services.mongo_service import get_mongo
 from ...models.reviews import ReviewRequest, ReviewResponse
@@ -32,7 +37,6 @@ router = APIRouter()
     },
 )
 def post_review(
-        restaurant_id: int,
         review: ReviewRequest,
         user: User = Depends(auth_user),
         database=Depends(get_mongo),
@@ -43,8 +47,8 @@ def post_review(
 
     try:
         review = review.dict()
-        review['restaurant_id'] = restaurant_id
         review['user_mail'] = user['mail']
+        review['created_datetime'] = datetime.now()
         object_id = database.gausselin_reviews.insert_one(review).inserted_id
     except PyMongoError as error:
         return JSONResponse(
@@ -65,24 +69,43 @@ def post_review(
         status.HTTP_404_NOT_FOUND: {
             'model': Message,
         },
+        status.HTTP_400_BAD_REQUEST: {
+            'model': Message,
+        },
         status.HTTP_500_INTERNAL_SERVER_ERROR: {
             'model': Message,
         },
     },
 )
 def get_reviews(
-        restaurant_id: int,
+        restaurant_id: int | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
         database=Depends(get_mongo),
 ):
     """
-    Get reviews of a restaurant from the DB.
+    Get reviews of restaurants from the DB.
     """
 
     try:
-        reviews = list(
-            database.gausselin_reviews.find({
-                'restaurant_id': restaurant_id,
-            }))
+        if restaurant_id is not None and offset is None and limit is None:
+            reviews = list(
+                database.gausselin_reviews.find({
+                    'restaurant_id': restaurant_id,
+                }))
+        elif restaurant_id is None and offset is not None and limit is not None:
+            reviews = list(
+                database.gausselin_reviews.find(
+                    {},
+                    skip=offset,
+                    limit=limit,
+                    sort=[('created_datetime', pymongo.DESCENDING)],
+                ))
+        else:
+            JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={'message': 'Query parameters are incorrect.'},
+            )
     except PyMongoError as error:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -98,7 +121,8 @@ def get_reviews(
     # Remove restaurant_id key from review.
     for review in reviews:
         review['id'] = str(review['_id'])
-        review.pop('restaurant_id')
+        if name := get_name(review['user_mail']):
+            review['user_name'] = name
 
     return reviews
 
@@ -219,3 +243,38 @@ def delete_review(
         )
 
     return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    '/count/',
+    dependencies=[Depends(auth_user)],
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            'model': Message,
+        },
+    },
+)
+def get_review_count(
+        restaurant_id: int | None = None,
+        database=Depends(get_mongo),
+):
+    """
+    Get the review count (of a restaurant) from the DB.
+    """
+
+    try:
+        if restaurant_id:
+            count = database.gausselin_reviews.count_documents({
+                'restaurant_id':
+                restaurant_id,
+            })
+        else:
+            count = database.gausselin_reviews.count_documents({})
+
+    except PyMongoError as error:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={'message': str(error)},
+        )
+
+    return {'count': count}
