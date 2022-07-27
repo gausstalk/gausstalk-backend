@@ -6,6 +6,7 @@ Path: /apps/lunch-together/v1/appointments/
 from datetime import datetime
 from typing import List
 
+import pymongo
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import status, APIRouter, Depends
@@ -32,7 +33,7 @@ router = APIRouter()
         },
     },
 )
-def get_appointment(database=Depends(get_mongo)):
+def get_appointment(offset: int, limit: int, database=Depends(get_mongo)):
     """
     Get an appointment whose datetime is after now.
     """
@@ -42,7 +43,7 @@ def get_appointment(database=Depends(get_mongo)):
                 'datetime': {
                     '$gt': datetime.now(),
                 },
-            }))
+            }).sort("datetime", pymongo.ASCENDING).limit(limit).skip(offset))
 
         # Join lunch_appointments and user collection.
         for appointment in appointments:
@@ -93,7 +94,7 @@ def post_appointment(
             'meeting_point':
             appointment.meeting_point,
             'organizer_mail':
-            user['mail'],
+            user.mail,
         })
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
@@ -136,7 +137,7 @@ def put_appointment(
         'datetime': appointment.datetime,
         'n_participants': appointment.n_participants,
         'meeting_point': appointment.meeting_point,
-        'organizer_mail': user['mail'],
+        'organizer_mail': user.mail,
     }
 
     try:
