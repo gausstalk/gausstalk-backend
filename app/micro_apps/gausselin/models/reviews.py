@@ -4,6 +4,7 @@ Model for /apps/gausselin/v1/reviews.
 
 # pylint: disable=no-name-in-module, too-few-public-methods
 
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, constr
@@ -26,3 +27,4 @@ class ReviewResponse(ReviewRequest):
     id: str
     user_mail: str
     user_name: Optional[str]
+    created_datetime: datetime
