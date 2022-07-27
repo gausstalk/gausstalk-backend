@@ -7,6 +7,7 @@ Path: /apps/lunch-together/v1/registrations/
 
 from typing import List
 
+from bson import ObjectId
 from fastapi import status, APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pymongo.errors import PyMongoError
@@ -44,12 +45,11 @@ def get_registrations(
     try:
         registrations = list(
             database.lunch_registrations.find({
-                'appointment_id': appointment_id,
+                'appointment_id': ObjectId(appointment_id),
             }))
         if len(registrations) == 0:
             return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND,
-                content={'message': 'Registrations not found.'},
+                status_code=status.HTTP_204_NO_CONTENT
             )
         return registrations
     except PyMongoError as error:
@@ -84,7 +84,7 @@ def put_registration(
 
     try:
         document = {
-            'appointment_id': appointment_id,
+            'appointment_id': ObjectId(appointment_id),
             'participant_mail': user['mail'],
         }
         result = database.lunch_registrations.update_one(
@@ -134,7 +134,7 @@ def delete_registration(
     try:
         result = database.lunch_registrations.delete_one({
             'appointment_id':
-            appointment_id,
+            ObjectId(appointment_id),
             'participant_mail':
             user['mail'],
         })

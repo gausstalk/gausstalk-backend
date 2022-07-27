@@ -94,7 +94,7 @@ def post_appointment(
             'meeting_point':
             appointment.meeting_point,
             'organizer_mail':
-            user.mail,
+            user['mail'],
         })
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
@@ -137,7 +137,7 @@ def put_appointment(
         'datetime': appointment.datetime,
         'n_participants': appointment.n_participants,
         'meeting_point': appointment.meeting_point,
-        'organizer_mail': user.mail,
+        'organizer_mail': user['mail'],
     }
 
     try:
