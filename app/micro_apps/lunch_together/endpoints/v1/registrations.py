@@ -51,6 +51,9 @@ def get_registrations(
             return JSONResponse(
                 status_code=status.HTTP_204_NO_CONTENT
             )
+
+        for register in registrations:
+            register['appointment_id'] = str(register['appointment_id'])
         return registrations
     except PyMongoError as error:
         return JSONResponse(
