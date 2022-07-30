@@ -16,6 +16,7 @@ from app.micro_apps.lunch_together.models.registration import Registration
 from app.micro_apps.user.models.auth import User
 from app.micro_apps.user.models.message import Message
 from app.micro_apps.user.services.auth_service import auth_user
+from app.micro_apps.user.services.user_info import get_name
 from app.services.mongo_service import get_mongo
 
 router = APIRouter()
@@ -54,6 +55,9 @@ def get_registrations(
 
         for register in registrations:
             register['appointment_id'] = str(register['appointment_id'])
+            register['participant_name'] = get_name(
+                register['participant_mail']
+            )
         return registrations
     except PyMongoError as error:
         return JSONResponse(

@@ -14,3 +14,4 @@ class Registration(BaseModel):
     """
     appointment_id: str
     participant_mail: str
+    participant_name: str
