@@ -203,6 +203,9 @@ def delete_appointment(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={'message': 'Appointment not found.'},
             )
+        database.lunch_registrations.delete_many({
+            'appointment_id': ObjectId(appointment_id),
+        })
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={'message': 'Appointment deleted.'},
