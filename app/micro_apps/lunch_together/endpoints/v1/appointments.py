@@ -89,8 +89,8 @@ def post_appointment(
             appointment.title,
             'datetime':
             appointment.datetime,
-            'n_participants':
-            appointment.n_participants,
+            'max_participants':
+            appointment.max_participants,
             'meeting_point':
             appointment.meeting_point,
             'organizer_mail':
@@ -135,7 +135,7 @@ def put_appointment(
         'restaurant_id': appointment.restaurant_id,
         'title': appointment.title,
         'datetime': appointment.datetime,
-        'n_participants': appointment.n_participants,
+        'max_participants': appointment.max_participants,
         'meeting_point': appointment.meeting_point,
         'organizer_mail': user['mail'],
     }

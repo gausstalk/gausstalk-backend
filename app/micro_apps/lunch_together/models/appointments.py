@@ -17,7 +17,7 @@ class AppointmentRequest(BaseModel):
     restaurant_id: int | None = None
     title: str
     datetime: datetime
-    n_participants: int
+    max_participants: int
     meeting_point: str | None = None
 
 
