@@ -19,20 +19,6 @@ from app.services.redis_cache import get_redis, reader
 router = APIRouter()
 
 
-def clean_message(message):
-    """clean_message"""
-    def escape(htmlstring):
-        """Clean up html from the incoming string"""
-        escapes = {'"': "&quot;", "'": "&#39;", "<": "&lt;", ">": "&gt;"}
-        # This is done first to prevent escaping other escapes.
-        htmlstring = htmlstring.replace("&", "&amp;")
-        for seq, esc in escapes.items():
-            htmlstring = htmlstring.replace(seq, esc)
-        return htmlstring
-
-    return escape(message)
-
-
 @router.websocket('/{gauss_access_token}')
 async def websocket_endpoint(
     websocket: WebSocket,
@@ -67,7 +53,6 @@ async def websocket_endpoint(
             for done in dones:
                 if done.get_coro() == client_to_redis:
                     message_text = done.result()
-                    message_text = clean_message(message_text)
                     message = {
                         "sender_mail": user['sub'],
                         "sender_name": user['name'],
