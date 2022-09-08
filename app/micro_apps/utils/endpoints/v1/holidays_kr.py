@@ -39,7 +39,7 @@ def get_kr_holidays(year: int, month: int):
     params = '&'.join([
         f'solYear={year}',
         f'solMonth={str(month).zfill(2)}',
-        f'ServiceKey={os.environ.get("SERVICE_KEY")}',
+        f'ServiceKey={os.environ.get("HOLIDAYS_KR_SERVICE_KEY")}',
         f'numOfRows={100}',
         '_type=json',
     ])
